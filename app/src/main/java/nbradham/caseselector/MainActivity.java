@@ -35,6 +35,7 @@ public class MainActivity extends AppCompatActivity {
 
             while (scanner.hasNext())
                 data.put(scanner.next(), scanner.nextByte());
+            scanner.close();
 
             ArrayList<String> options = new ArrayList<>();
 

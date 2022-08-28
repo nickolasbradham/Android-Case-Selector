@@ -60,7 +60,7 @@ public class MainActivity extends AppCompatActivity {
             }
 
         //Setup app from options.
-        switch (props.getProperty(OPT_SFW, CH_EROTIC)) {
+        switch (props.getProperty(OPT_SFW, CH_EXPLICIT)) {
             case CH_SAFE:
                 ((RadioButton) findViewById(R.id.rbSafe)).setChecked(true);
                 break;

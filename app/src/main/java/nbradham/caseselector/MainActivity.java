@@ -203,7 +203,11 @@ public class MainActivity extends AppCompatActivity {
      * Handles picking the next random Case.
      */
     private void handleRoll() {
-        Case[] avail = getAvailableCases();
+        boolean avoidRepeat = Boolean.parseBoolean(props.getProperty(OPT_NO_REPEAT));
+        Case[] avail = getAvailableCases(!avoidRepeat);
+
+        if (avail.length <= 0 && avoidRepeat)
+            avail = getAvailableCases(true);
 
         if (avail.length <= 0) {
             //Reset history and try again.
@@ -213,14 +217,16 @@ public class MainActivity extends AppCompatActivity {
                 history.add(last);
             }
 
-            avail = getAvailableCases();
+            avail = getAvailableCases(!avoidRepeat);
+
+            if (avail.length <= 0 && avoidRepeat)
+                avail = getAvailableCases(true);
 
             if (avail.length <= 0) {
                 ((TextView) findViewById(R.id.caseText)).setText(R.string.err_no_case);
                 return;
             }
         }
-
         Case sel = avail[RAND.nextInt(avail.length)];
         setCaseView(sel);
         history.add(sel.getFileName());
@@ -246,15 +252,15 @@ public class MainActivity extends AppCompatActivity {
      *
      * @return A Case array containing all valid options.
      */
-    private Case[] getAvailableCases() {
+    private Case[] getAvailableCases(boolean allowRepeat) {
         ArrayList<Case> avail = new ArrayList<>();
-        boolean both = Boolean.parseBoolean(props.getProperty(OPT_BOTH_SIDES)), noRepeat = Boolean.parseBoolean(props.getProperty(OPT_NO_REPEAT));
+        boolean both = Boolean.parseBoolean(props.getProperty(OPT_BOTH_SIDES));
         byte tarSFW = getSFWByte(props.getProperty(OPT_SFW, CH_EXPLICIT));
 
         for (Case c : allCases) {
             byte sfw0 = getSFWByte(c, 0), sfw1 = getSFWByte(c, 1);
             //Add Case c to available options if it meets all option and history criteria...
-            if ((both && Math.max(sfw0, sfw1) <= tarSFW || !both && Math.min(sfw0, sfw1) <= tarSFW) && !history.contains(c.getFileName()) && (!noRepeat || lastHasDifChars(c)))
+            if ((both && Math.max(sfw0, sfw1) <= tarSFW || !both && Math.min(sfw0, sfw1) <= tarSFW) && !history.contains(c.getFileName()) && (allowRepeat || lastHasDifChars(c)))
                 avail.add(c);
         }
 

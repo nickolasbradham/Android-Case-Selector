@@ -45,17 +45,19 @@ public class MainActivity extends AppCompatActivity {
         //Setup file objects for later use.
         File workDir = getExternalFilesDir(null);
         imgDir = new File(workDir, "images");
+        imgDir.mkdirs();
         hist = new File(workDir, "history.txt");
         opts = new File(workDir, "options.txt");
 
         //Try and read options file.
-        try {
-            FileReader fr = new FileReader(opts);
-            props.load(fr);
-            fr.close();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        if (opts.exists())
+            try {
+                FileReader fr = new FileReader(opts);
+                props.load(fr);
+                fr.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
 
         //Setup app from options.
         switch (props.getProperty(OPT_SFW, CH_EROTIC)) {
@@ -70,22 +72,26 @@ public class MainActivity extends AppCompatActivity {
         ((CheckBox) findViewById(R.id.cbNoRepeat)).setChecked(Boolean.parseBoolean(props.getProperty(OPT_NO_REPEAT, "true")));
 
         //Try to retrieve history from file.
-        try {
-            Scanner scan = new Scanner(hist);
-            while (scan.hasNextLine())
-                history.add(scan.nextLine());
-            scan.close();
+        if (hist.exists())
+            try {
+                Scanner scan = new Scanner(hist);
+                while (scan.hasNextLine())
+                    history.add(scan.nextLine());
+                scan.close();
 
-            setCaseView(parseCase(history.get(history.size() - 1)));
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
-        }
+                setCaseView(parseCase(history.get(history.size() - 1)));
+            } catch (FileNotFoundException e) {
+                e.printStackTrace();
+            }
 
         //Retrieve all cases from image dir.
         ArrayList<Case> tmpCases = new ArrayList<>();
         for (String s : Objects.requireNonNull(imgDir.list()))
             tmpCases.add(parseCase(s));
         allCases = tmpCases.toArray(new Case[0]);
+
+        if (allCases.length <= 0)
+            ((TextView) findViewById(R.id.caseText)).setText(getString(R.string.err_no_images, imgDir));
     }
 
     /**
@@ -103,7 +109,8 @@ public class MainActivity extends AppCompatActivity {
      * @param v Android app thing.
      */
     public void onReselect(View v) {
-        history.remove(history.size() - 1);
+        if (history.size() > 0)
+            history.remove(history.size() - 1);
         handleRoll();
     }
 
@@ -200,9 +207,11 @@ public class MainActivity extends AppCompatActivity {
 
         if (avail.length <= 0) {
             //Reset history and try again.
-            String last = history.get(history.size() - 1);
-            history.clear();
-            history.add(last);
+            if (history.size() > 0) {
+                String last = history.get(history.size() - 1);
+                history.clear();
+                history.add(last);
+            }
 
             avail = getAvailableCases();
 
@@ -240,7 +249,7 @@ public class MainActivity extends AppCompatActivity {
     private Case[] getAvailableCases() {
         ArrayList<Case> avail = new ArrayList<>();
         boolean both = Boolean.parseBoolean(props.getProperty(OPT_BOTH_SIDES)), noRepeat = Boolean.parseBoolean(props.getProperty(OPT_NO_REPEAT));
-        byte tarSFW = getSFWByte(props.getProperty(OPT_SFW));
+        byte tarSFW = getSFWByte(props.getProperty(OPT_SFW, CH_EXPLICIT));
 
         for (Case c : allCases) {
             byte sfw0 = getSFWByte(c, 0), sfw1 = getSFWByte(c, 1);

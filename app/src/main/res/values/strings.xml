@@ -1,13 +1,13 @@
 <resources>
     <string name="app_name">Case Selector</string>
-    <string name="image_desc">Picked Case Image</string>
     <string name="safe">Safe</string>
     <string name="next_case">Next Case</string>
-    <string name="reroll">Reroll</string>
+    <string name="reselect">Reselect</string>
     <string name="erotic">Erotic</string>
     <string name="explicit">Explicit</string>
     <string name="both_sides_limited">Both Sides Limited</string>
     <string name="avoid_repeat_character">Avoid Repeat Character</string>
     <string name="nsfw_limit">NSFW Limit</string>
     <string name="case_image">Case Image</string>
+    <string name="err_no_case">Unable to find case meeting all criteria.</string>
 </resources>

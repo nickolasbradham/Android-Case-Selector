@@ -17,12 +17,14 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.file.Paths;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Objects;
 import java.util.Properties;
 import java.util.Random;
 import java.util.Scanner;
 
+/**
+ * Handles all code execution and GUI setup and interactions.
+ */
 public class MainActivity extends AppCompatActivity {
 
     private static final String OPT_SFW = "sfw", OPT_BOTH_SIDES = "both", OPT_NO_REPEAT = "diff", CH_SAFE = "s", CH_EROTIC = "e", CH_EXPLICIT = "x";
@@ -36,14 +38,17 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        //Android app things.
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        //Setup file objects for later use.
         File workDir = getExternalFilesDir(null);
         imgDir = new File(workDir, "images");
         hist = new File(workDir, "history.txt");
         opts = new File(workDir, "options.txt");
 
+        //Try and read options file.
         try {
             FileReader fr = new FileReader(opts);
             props.load(fr);
@@ -52,6 +57,7 @@ public class MainActivity extends AppCompatActivity {
             e.printStackTrace();
         }
 
+        //Setup app from options.
         switch (props.getProperty(OPT_SFW, CH_EROTIC)) {
             case CH_SAFE:
                 ((RadioButton) findViewById(R.id.rbSafe)).setChecked(true);
@@ -63,6 +69,7 @@ public class MainActivity extends AppCompatActivity {
         ((CheckBox) findViewById(R.id.cbBothSide)).setChecked(Boolean.parseBoolean(props.getProperty(OPT_BOTH_SIDES, "false")));
         ((CheckBox) findViewById(R.id.cbNoRepeat)).setChecked(Boolean.parseBoolean(props.getProperty(OPT_NO_REPEAT, "true")));
 
+        //Try to retrieve history from file.
         try {
             Scanner scan = new Scanner(hist);
             while (scan.hasNextLine())
@@ -74,31 +81,56 @@ public class MainActivity extends AppCompatActivity {
             e.printStackTrace();
         }
 
+        //Retrieve all cases from image dir.
         ArrayList<Case> tmpCases = new ArrayList<>();
         for (String s : Objects.requireNonNull(imgDir.list()))
             tmpCases.add(parseCase(s));
         allCases = tmpCases.toArray(new Case[0]);
     }
 
+    /**
+     * Handles when the user pushes the next case button.
+     *
+     * @param v Android app thing.
+     */
     public void onRoll(View v) {
         handleRoll();
     }
 
-    public void onReroll(View v) {
+    /**
+     * Handles when the user pushes the reselect button.
+     *
+     * @param v Android app thing.
+     */
+    public void onReselect(View v) {
         history.remove(history.size() - 1);
         handleRoll();
     }
 
+    /**
+     * Handles when the user changes any options.
+     *
+     * @param v Android app thing.
+     * @throws IOException Thrown by {@link FileWriter#FileWriter(File)} and {@link FileWriter#close()}
+     */
     public void onOption(View v) throws IOException {
+        //Update properties.
         props.setProperty(OPT_SFW, ((RadioButton) findViewById(R.id.rbSafe)).isChecked() ? CH_SAFE : ((RadioButton) findViewById(R.id.rbErotic)).isChecked() ? CH_EROTIC : CH_EXPLICIT);
         props.setProperty(OPT_BOTH_SIDES, Boolean.toString(((CheckBox) findViewById(R.id.cbBothSide)).isChecked()));
         props.setProperty(OPT_NO_REPEAT, Boolean.toString(((CheckBox) findViewById(R.id.cbNoRepeat)).isChecked()));
 
+        //Store properties.
         FileWriter fw = new FileWriter(opts);
         props.store(fw, "Case Selector Options");
         fw.close();
     }
 
+    /**
+     * Retrieves the numeric value of a SFW char.
+     *
+     * @param c The character to get the value from.
+     * @return The SFW byte value.
+     */
     private byte getSFWByte(String c) {
         switch (c) {
             case CH_SAFE:
@@ -111,22 +143,36 @@ public class MainActivity extends AppCompatActivity {
         return -1;
     }
 
-    private byte getSFWByte(char c) {
-        return getSFWByte(c + "");
-    }
-
+    /**
+     * Retrieves the SFW rating of case {@code c} character index {@code i}.
+     *
+     * @param c The case to get the SFW rating of.
+     * @param i The index of the character to get the SFW rating of.
+     * @return The SFW rating.
+     */
     private byte getSFWByte(Case c, int i) {
-        return getSFWByte(c.getSFW(i));
+        return getSFWByte(String.valueOf(c.getSFW(i)));
     }
 
+    /**
+     * Parses a String into a new Case instance.
+     *
+     * @param fileName The file name to convert.
+     * @return A new Case instance parsed from the string.
+     */
     private Case parseCase(String fileName) {
         String[] chars = fileName.substring(2, fileName.lastIndexOf('.')).split("-");
-        for (byte n = 0; n < chars.length; n++)
-            chars[n] = chars[n].replaceAll("[0-9]*$", "");
-
+        int last = chars.length - 1;
+        chars[last] = chars[last].replaceAll("[0-9]*$", "");
         return new Case(fileName, chars, fileName.charAt(0), fileName.charAt(1));
     }
 
+    /**
+     * Checks to see if Case {@code c} has different characters than the last Case.
+     *
+     * @param c The Case to compare to the last Case.
+     * @return True if {@code c} has different characters.
+     */
     private boolean lastHasDifChars(Case c) {
         if (history.size() > 0)
             for (String ch : parseCase(history.get(history.size() - 1)).getChars())
@@ -136,29 +182,41 @@ public class MainActivity extends AppCompatActivity {
         return true;
     }
 
+    /**
+     * Updates the case text and image on the GUI.
+     *
+     * @param c The Case to put on the GUI.
+     */
     private void setCaseView(Case c) {
         ((TextView) findViewById(R.id.caseText)).setText(c.getName());
         ((ImageView) findViewById(R.id.iImage)).setImageBitmap(BitmapFactory.decodeFile(Paths.get(imgDir.toString(), c.getFileName()).toString()));
     }
 
+    /**
+     * Handles picking the next random Case.
+     */
     private void handleRoll() {
         Case[] avail = getAvailableCases();
 
-        System.out.println("Pool: " + Arrays.toString(avail));
-
         if (avail.length <= 0) {
-            String last = history.get(history.size()-1);
+            //Reset history and try again.
+            String last = history.get(history.size() - 1);
             history.clear();
             history.add(last);
 
             avail = getAvailableCases();
-            System.out.println("Reset Pool: " + Arrays.toString(avail));
+
+            if (avail.length <= 0) {
+                ((TextView) findViewById(R.id.caseText)).setText(R.string.err_no_case);
+                return;
+            }
         }
 
         Case sel = avail[RAND.nextInt(avail.length)];
         setCaseView(sel);
         history.add(sel.getFileName());
 
+        //Write new history.
         try {
             FileWriter fw = new FileWriter(hist);
             history.forEach(s -> {
@@ -174,6 +232,11 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    /**
+     * Retrieves all available cases to pick from based on selected options and history.
+     *
+     * @return A Case array containing all valid options.
+     */
     private Case[] getAvailableCases() {
         ArrayList<Case> avail = new ArrayList<>();
         boolean both = Boolean.parseBoolean(props.getProperty(OPT_BOTH_SIDES)), noRepeat = Boolean.parseBoolean(props.getProperty(OPT_NO_REPEAT));
@@ -181,6 +244,7 @@ public class MainActivity extends AppCompatActivity {
 
         for (Case c : allCases) {
             byte sfw0 = getSFWByte(c, 0), sfw1 = getSFWByte(c, 1);
+            //Add Case c to available options if it meets all option and history criteria...
             if ((both && Math.max(sfw0, sfw1) <= tarSFW || !both && Math.min(sfw0, sfw1) <= tarSFW) && !history.contains(c.getFileName()) && (!noRepeat || lastHasDifChars(c)))
                 avail.add(c);
         }

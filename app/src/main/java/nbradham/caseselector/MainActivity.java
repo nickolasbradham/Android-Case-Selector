@@ -8,6 +8,7 @@ import android.widget.ImageView;
 import android.widget.RadioButton;
 import android.widget.TextView;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
 import java.io.File;
@@ -204,10 +205,7 @@ public class MainActivity extends AppCompatActivity {
      */
     private void handleRoll() {
         boolean avoidRepeat = Boolean.parseBoolean(props.getProperty(OPT_NO_REPEAT));
-        Case[] avail = getAvailableCases(!avoidRepeat);
-
-        if (avail.length <= 0 && avoidRepeat)
-            avail = getAvailableCases(true);
+        Case[] avail = getCases(avoidRepeat);
 
         if (avail.length <= 0) {
             //Reset history and try again.
@@ -217,10 +215,7 @@ public class MainActivity extends AppCompatActivity {
                 history.add(last);
             }
 
-            avail = getAvailableCases(!avoidRepeat);
-
-            if (avail.length <= 0 && avoidRepeat)
-                avail = getAvailableCases(true);
+            avail = getCases(!avoidRepeat);
 
             if (avail.length <= 0) {
                 ((TextView) findViewById(R.id.caseText)).setText(R.string.err_no_case);
@@ -245,6 +240,20 @@ public class MainActivity extends AppCompatActivity {
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+
+    /**
+     * Tries to get available options while respecting {@code avoidRepeat}. If no options are found, tries again with {@code avoidRepeat} set to false.
+     *
+     * @param avoidRepeat Should the function try to avoid a case with same character as previous?
+     * @return An array of all available options.
+     */
+    private Case[] getCases(boolean avoidRepeat) {
+        Case[] avail = getAvailableCases(!avoidRepeat);
+
+        if (avail.length <= 0 && avoidRepeat)
+            avail = getAvailableCases(true);
+        return avail;
     }
 
     /**

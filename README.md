@@ -1,7 +1,7 @@
 # Android-Case-Selector
 Although this app was originally designed for selecting dakimakura cases, it could probably be used for many other things.
 
-This is for all the weebs ou there that have a collection of dakimakura cases that they want to rotate through regularly. After the app is setup, it will select a random case from all the images stored in the `images` directory.
+This is for all the weebs out there that have a collection of dakimakura cases that they want to rotate through regularly. After the app is setup, it will select a random case from all the images stored in the `images` directory.
 
 ### Here is a picture of the interface:
 ![Screenshot_20220831-114703_Case Selector](https://user-images.githubusercontent.com/105989209/187745608-f20dd339-b683-4d2c-bf5e-e0e02a9af407.jpg)

@@ -92,7 +92,7 @@ public class MainActivity extends AppCompatActivity {
             tmpCases.add(parseCase(s));
         allCases = tmpCases.toArray(new Case[0]);
 
-        if (allCases.length <= 0)
+        if (allCases.length == 0)
             ((TextView) findViewById(R.id.caseText)).setText(getString(R.string.err_no_images, imgDir));
     }
 
@@ -208,7 +208,7 @@ public class MainActivity extends AppCompatActivity {
         boolean avoidRepeat = Boolean.parseBoolean(props.getProperty(OPT_NO_REPEAT));
         Case[] avail = getCases(avoidRepeat);
 
-        if (avail.length <= 0) {
+        if (avail.length == 0) {
             //Reset history and try again.
             if (history.size() > 0) {
                 String last = history.get(history.size() - 1);
@@ -218,7 +218,7 @@ public class MainActivity extends AppCompatActivity {
 
             avail = getCases(!avoidRepeat);
 
-            if (avail.length <= 0) {
+            if (avail.length == 0) {
                 ((TextView) findViewById(R.id.caseText)).setText(R.string.err_no_case);
                 return;
             }
@@ -241,7 +241,7 @@ public class MainActivity extends AppCompatActivity {
         } catch (IOException e) {
             e.printStackTrace();
         }
-        ((Button) findViewById(R.id.bNext)).setText(String.format(Locale.US,"Next (%d left)", allCases.length - history.size()));
+        ((Button) findViewById(R.id.bNext)).setText(String.format(Locale.US, "Next (%d left)", allCases.length - history.size()));
     }
 
     /**
@@ -253,7 +253,7 @@ public class MainActivity extends AppCompatActivity {
     private Case[] getCases(boolean avoidRepeat) {
         Case[] avail = getAvailableCases(!avoidRepeat);
 
-        if (avail.length <= 0 && avoidRepeat)
+        if (avail.length == 0 && avoidRepeat)
             avail = getAvailableCases(true);
         return avail;
     }

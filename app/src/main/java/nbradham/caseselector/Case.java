@@ -1,9 +1,5 @@
 package nbradham.caseselector;
 
-import androidx.annotation.NonNull;
-
-import java.util.Arrays;
-
 /**
  * Holds all info related to a single case.
  */

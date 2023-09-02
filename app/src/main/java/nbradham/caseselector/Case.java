@@ -1,12 +1,14 @@
 package nbradham.caseselector;
 
+import java.util.Arrays;
+
 /**
  * Holds all info related to a single case.
  */
-public class Case {
+final class Case {
 
     private final String fileName, name;
-    private final String[] chars;
+    private final char[] chars;
     private final char[] sfws;
 
     /**
@@ -17,7 +19,7 @@ public class Case {
      * @param sfw0        The SFW rating of the first character.
      * @param sfw1        The SFW rating of the second character.
      */
-    protected Case(String setFileName, String[] setChars, char sfw0, char sfw1) {
+    Case(String setFileName, char sfw0, char sfw1, char[] setChars) {
         fileName = setFileName;
         name = fileName.substring(0, fileName.lastIndexOf('.'));
         chars = setChars;
@@ -30,7 +32,7 @@ public class Case {
      * @param i The index of the character to get.
      * @return The character representing the SFW rating.
      */
-    protected char getSFW(int i) {
+    char getSFW(int i) {
         return sfws[i];
     }
 
@@ -39,7 +41,7 @@ public class Case {
      *
      * @return The file name of the case.
      */
-    protected String getFileName() {
+    String getFileName() {
         return fileName;
     }
 
@@ -48,7 +50,7 @@ public class Case {
      *
      * @return The name of the case.
      */
-    protected String getName() {
+    String getName() {
         return name;
     }
 
@@ -57,7 +59,18 @@ public class Case {
      *
      * @return The names of the characters in a String array.
      */
-    protected String[] getChars() {
+    char[] getChars() {
         return chars;
+    }
+
+    /**
+     * Parses input string into a Case instance.
+     *
+     * @param str The String to parse.
+     * @return The new Case instance.
+     */
+    static Case parse(String str) {
+        char[] split = str.replaceAll("^[0-9]*|.jpg", "").toCharArray();
+        return new Case(str, split[0], split[1], Arrays.copyOfRange(split, 2, split.length));
     }
 }

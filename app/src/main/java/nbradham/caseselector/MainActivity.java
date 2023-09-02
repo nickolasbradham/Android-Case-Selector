@@ -60,8 +60,12 @@ public final class MainActivity extends AppCompatActivity {
             e.printStackTrace();
         }
 
+        props.putIfAbsent(OPT_SFW, CH_EXPLICIT);
+        props.putIfAbsent(OPT_BOTH_SIDES, "false");
+        props.putIfAbsent(OPT_NO_REPEAT, "true");
+
         //Setup app from options.
-        switch (props.getProperty(OPT_SFW, CH_EXPLICIT)) {
+        switch (props.getProperty(OPT_SFW)) {
             case CH_SAFE:
                 ((RadioButton) findViewById(R.id.rbSafe)).setChecked(true);
                 break;
@@ -69,8 +73,8 @@ public final class MainActivity extends AppCompatActivity {
                 ((RadioButton) findViewById(R.id.rbErotic)).setChecked(true);
         }
 
-        ((CheckBox) findViewById(R.id.cbBothSide)).setChecked(Boolean.parseBoolean(props.getProperty(OPT_BOTH_SIDES, "false")));
-        ((CheckBox) findViewById(R.id.cbNoRepeat)).setChecked(Boolean.parseBoolean(props.getProperty(OPT_NO_REPEAT, "true")));
+        ((CheckBox) findViewById(R.id.cbBothSide)).setChecked(Boolean.parseBoolean(props.getProperty(OPT_BOTH_SIDES)));
+        ((CheckBox) findViewById(R.id.cbNoRepeat)).setChecked(Boolean.parseBoolean(props.getProperty(OPT_NO_REPEAT)));
 
         //Try to retrieve history from file.
         if (hist.exists()) try {
@@ -117,6 +121,10 @@ public final class MainActivity extends AppCompatActivity {
      */
     private void handleRoll() {
         Case[] avail = getAvailable();
+        if(avail.length == 0) {
+            ((TextView) findViewById(R.id.caseText)).setText(R.string.err_no_case);
+            return;
+        }
         Case sel = avail[RAND.nextInt(avail.length)];
         setCaseView(sel);
         history.add(sel);
@@ -162,8 +170,7 @@ public final class MainActivity extends AppCompatActivity {
     private Case[] availPass() {
         boolean avoidRepeat = Boolean.parseBoolean(props.getProperty(OPT_NO_REPEAT));
         Case[] avail = getAvailable(avoidRepeat);
-        if (avail.length == 0 && avoidRepeat)
-            avail = getAvailable(false);
+        if (avail.length == 0 && avoidRepeat) avail = getAvailable(false);
         return avail;
     }
 
@@ -177,11 +184,11 @@ public final class MainActivity extends AppCompatActivity {
         ArrayList<Case> avail = new ArrayList<>();
         byte tarSFW = getSFWN(props.getProperty(OPT_SFW).charAt(0));
         boolean nBoth = !Boolean.parseBoolean(props.getProperty(OPT_BOTH_SIDES)), repeatOk = !excludeRepeat, notRepeat, aSafe, bSafe;
-        Case last = history.get(history.size() - 1);
+        Case last = null;
+        if (history.size() > 0) last = history.get(history.size() - 1);
         for (Case c : allCases) {
             notRepeat = true;
-            outer:
-            for (char c1 : c.getChars())
+            if (last != null) outer:for (char c1 : c.getChars())
                 for (char c2 : last.getChars())
                     if (c1 == c2) {
                         notRepeat = false;

@@ -7,7 +7,7 @@ import java.util.Arrays;
  */
 final class Case {
 
-    private final String fileName, name;
+    private final String fileName;
     private final char[] chars;
     private final char[] sfws;
 
@@ -21,7 +21,6 @@ final class Case {
      */
     Case(String setFileName, char sfw0, char sfw1, char[] setChars) {
         fileName = setFileName;
-        name = fileName.substring(0, fileName.lastIndexOf('.'));
         chars = setChars;
         sfws = new char[]{sfw0, sfw1};
     }
@@ -43,15 +42,6 @@ final class Case {
      */
     String getFileName() {
         return fileName;
-    }
-
-    /**
-     * Retrieves the name of the case. This is the file name without the extension.
-     *
-     * @return The name of the case.
-     */
-    String getName() {
-        return name;
     }
 
     /**

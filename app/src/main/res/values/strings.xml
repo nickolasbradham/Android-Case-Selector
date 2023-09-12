@@ -9,6 +9,6 @@
     <string name="avoid_repeat_character">Avoid Repeat Character</string>
     <string name="nsfw_limit">NSFW Limit</string>
     <string name="case_image">Case Image</string>
-    <string name="err_no_case">Unable to find case meeting all criteria.</string>
     <string name="err_no_images">WARNING: \"%1$s\" is empty. Put some choices in it first.</string>
+    <string name="err_no_case">Unable to select case meeting criteria.</string>
 </resources>

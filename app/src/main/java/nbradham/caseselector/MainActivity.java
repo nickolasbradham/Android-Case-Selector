@@ -57,8 +57,7 @@ public final class MainActivity extends AppCompatActivity {
             FileReader fr = new FileReader(opts);
             props.load(fr);
             fr.close();
-        } catch (IOException e) {
-            e.printStackTrace();
+        } catch (IOException ignored) {
         }
         else {
             props.put(OPT_SFW, CH_EXPLICIT);
@@ -84,14 +83,17 @@ public final class MainActivity extends AppCompatActivity {
 
         if (hist.exists()) try {
             Scanner scan = new Scanner(hist);
-            while (scan.hasNextLine()) history.add(allCases.get(scan.nextLine()));
+            while (scan.hasNextLine()) {
+                Case c = allCases.get(scan.nextLine());
+                if (c != null)
+                    history.add(c);
+            }
             scan.close();
             setCaseView(history.get(history.size() - 1));
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
+        } catch (FileNotFoundException ignored) {
         }
 
-        if (allCases.size() == 0)
+        if (allCases.isEmpty())
             ((TextView) findViewById(R.id.caseText)).setText(getString(R.string.err_no_images, imgDir));
     }
 
@@ -133,13 +135,11 @@ public final class MainActivity extends AppCompatActivity {
             history.forEach(c -> {
                 try {
                     fw.append(c.getFileName()).append('\n');
-                } catch (IOException e) {
-                    e.printStackTrace();
+                } catch (IOException ignored) {
                 }
             });
             fw.close();
-        } catch (IOException e) {
-            e.printStackTrace();
+        } catch (IOException ignored) {
         }
         ((Button) findViewById(R.id.bNext)).setText(String.format(Locale.US, "Next (%d left)", allCases.size() - history.size()));
     }
@@ -180,10 +180,10 @@ public final class MainActivity extends AppCompatActivity {
      */
     private Case[] getAvailable(boolean excludeRepeat) {
         ArrayList<Case> avail = new ArrayList<>();
-        byte tarSFW = getSFWN(props.getProperty(OPT_SFW).charAt(0));
+        byte tarSFW = getSfwVal(props.getProperty(OPT_SFW).charAt(0));
         boolean nBoth = !Boolean.parseBoolean(props.getProperty(OPT_BOTH_SIDES)), repeatOk = !excludeRepeat, notRepeat, aSafe, bSafe;
         Case last = null;
-        if (history.size() > 0) last = history.get(history.size() - 1);
+        if (!history.isEmpty()) last = history.get(history.size() - 1);
         for (Case c : allCases.values()) {
             notRepeat = true;
             if (last != null) outer:for (char c1 : c.getChars())
@@ -192,7 +192,7 @@ public final class MainActivity extends AppCompatActivity {
                         notRepeat = false;
                         break outer;
                     }
-            if ((((aSafe = getSFWN(c.getSFW(0)) >= tarSFW) & (bSafe = getSFWN(c.getSFW(1)) >= tarSFW)) || ((aSafe || bSafe) && nBoth)) && (repeatOk || notRepeat) && !history.contains(c))
+            if ((((aSafe = getSfwVal(c.getSFW(0)) >= tarSFW) & (bSafe = getSfwVal(c.getSFW(1)) >= tarSFW)) || ((aSafe || bSafe) && nBoth)) && (repeatOk || notRepeat) && !history.contains(c))
                 avail.add(c);
         }
         return avail.toArray(new Case[0]);
@@ -204,7 +204,7 @@ public final class MainActivity extends AppCompatActivity {
      * @param sfw The SFW rating to convert.
      * @return 2 if {@code sfw} = "s", 1 if {@code sfw} = "e", 0 if {@code sfw} = "x", and -1 for any other value.
      */
-    private byte getSFWN(char sfw) {
+    private byte getSfwVal(char sfw) {
         switch (String.valueOf(sfw)) {
             case CH_SAFE:
                 return 2;
@@ -237,8 +237,7 @@ public final class MainActivity extends AppCompatActivity {
             FileWriter fw = new FileWriter(opts);
             props.store(fw, "Case Selector Options");
             fw.close();
-        } catch (IOException e) {
-            e.printStackTrace();
+        } catch (IOException ignored) {
         }
     }
 
